@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "product": "Product A",
+    "qty": 100,
+    "operations": [
+      {
+        "id": 1,
+        "workOrderId": 1,
+        "index": 1,
+        "machineId": "M1",
+        "name": "Cutting",
+        "start": "2025-08-22T09:00:00",
+        "end": "2025-08-22T10:00:00"
+      },
+      {
+        "id": 2,
+        "workOrderId": 1,
+        "index": 2,
+        "machineId": "M2",
+        "name": "Assembling",
+        "start": "2025-08-22T10:30:00",
+        "end": "2025-08-22T11:30:00"
+      }
+    ]
+  }
+]
