@@ -1,7 +1,7 @@
 
 # Factory Scheduler (FastAPI + React)
 
-Small web app that visualizes factory work orders on a simple Gantt-style timeline.
+web app that visualizes factory work orders on a simple Gantt-style timeline.
 
 ## Tech
 - Backend: FastAPI, SQLAlchemy, Postgres
