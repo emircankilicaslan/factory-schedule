@@ -1,109 +1,72 @@
+# Factory Scheduler – Fabrika Üretim Çizelgesi
 
-# Factory Scheduler (FastAPI + React)
+![CI](https://github.com/emircankilicaslan/factory-schedule/actions/workflows/ci.yml/badge.svg)
 
-web app that visualizes factory work orders on a simple Gantt-style timeline.
+> **English summary:** A small full-stack app (FastAPI + SQLAlchemy + PostgreSQL, React + vis-timeline) that shows factory work orders on a Gantt-style timeline and validates schedule changes with three business rules: operation precedence, machine-lane exclusivity and no scheduling in the past.
 
-## Tech
-- Backend: FastAPI, SQLAlchemy, Postgres
-- Frontend: React (Vite) + vis-timeline
-- DB Seeding: `seed.json`
+İş emirlerini ve operasyonlarını makine hatlarına (lane) göre Gantt benzeri bir zaman çizelgesinde gösteren ve operasyon zamanı değişikliklerini iş kurallarıyla doğrulayan web uygulaması.
 
-## Run with Docker Compose
+![Zaman çizelgesi](docs/screenshots/zaman-cizelgesi.jpg)
 
+## Özellikler
+- **Zaman çizelgesi:** Her makine bir hat; çubuklarda `İşEmri · Operasyon` yazar, "şimdi" çizgisi görünür.
+- **Vurgulama:** Bir operasyona tıklayınca aynı iş emrine ait tüm operasyonlar vurgulanır.
+- **Güncelleme ve doğrulama:** Her operasyon kartındaki ±10 dk düğmeleri `PATCH /operations/{id}` çağırır; kurallar sunucuda uygulanır.
+- **PostgreSQL** ile kalıcı veri; boş veritabanında örnek veri otomatik yüklenir.
+
+## İş kuralları
+| Kural | Anlamı | Hata kodu |
+|---|---|---|
+| **R1 – Öncelik** | Bir operasyon, aynı iş emrindeki önceki operasyon bitmeden başlayamaz; sonraki operasyon başlamadan sonra da bitemez | 409 |
+| **R2 – Hat tekilliği** | Aynı makinedeki operasyonlar zamanda çakışamaz (uç uca değmek serbest) | 409 |
+| **R3 – Geçmiş yasak** | Başlangıç "şimdi"den önce olamaz | 409 |
+| Geçersiz aralık | Bitiş, başlangıçtan sonra olmalı | 422 |
+
+Kurallar veritabanından bağımsız saf fonksiyonlardır (`backend/app/rules.py`) ve ayrıca birim testlerle doğrulanır. Başarısız bir güncelleme veriyi değiştirmez.
+
+## Çalıştırma
 ```bash
 docker compose up --build
 ```
-- Backend: http://localhost:8000
-- Frontend: http://localhost:5173
-- DB: Postgres on localhost:5432 (`app/app`, db `factory`)
+- Arayüz: http://localhost:5173
+- API: http://localhost:8000 (Swagger: `/docs`)
+- PostgreSQL: `localhost:5432` (kullanıcı `app`, parola `app`, veritabanı `factory`; yalnızca yerel geliştirme içindir)
 
-If there is no data on first boot, backend seeds from `seed.json` automatically.
+Örnek veri (`backend/app/seed.json`) her açılışta, **ilk operasyon bir sonraki tam saatte başlayacak şekilde ötelenir**; böylece demo her zaman gelecekte kalır ve R3 yüzünden güncellemeler baştan reddedilmez.
 
 ## API
+| Yöntem | Yol | Açıklama |
+|---|---|---|
+| GET | `/health` | Sağlık kontrolü |
+| GET | `/workorders` | İş emirleri; operasyonlar `index` sırasındadır |
+| PATCH | `/operations/{id}` | `{ "start": "...", "end": "..." }` (ISO-8601) ile zaman günceller |
 
-### GET `/workorders` → 200 OK
-Returns all work orders with their operations ordered by `index`.
-
-**Response (excerpt):**
+Örnek hata yanıtı:
 ```json
-[
-  {
-    "id": "WO-1001",
-    "product": "Widget A",
-    "qty": 100,
-    "operations": [
-      {
-        "id": "OP-1",
-        "workOrderId": "WO-1001",
-        "index": 1,
-        "machineId": "M1",
-        "name": "Cut",
-        "start": "2025-08-20T09:00:00+00:00",
-        "end": "2025-08-20T10:00:00+00:00"
-      }
-    ]
-  }
-]
+{ "detail": "R1 violation: Operation must start at or after previous operation ends (OP-1 ends 2026-11-12T11:00:00+00:00)." }
 ```
 
-### PATCH `/operations/{op_id}` → 200 OK
-Update a single operation's `start` and `end` (ISO-8601 UTC).
-
-**Payload:**
-```json
-{ "start": "2025-08-20T10:10:00Z", "end": "2025-08-20T12:00:00Z" }
-```
-
-**Validations:**  
-- **R1 — Precedence**: op k must start at/after op k-1 ends.  
-- **R2 — Lane exclusivity**: no overlaps on same `machineId`.  
-- **R3 — No past**: start cannot be before **now**.
-
-**Errors (examples):**
-```json
-{
-  "detail": "R1 violation: Operation OP-2 must start at or after previous operation ends (OP-1 ends 2025-08-20T10:00:00+00:00)."
-}
-```
-```json
-{
-  "detail": "R2 violation: Overlaps with operation OP-3 on machine M1 (2025-08-20T09:30:00+00:00–2025-08-20T10:30:00+00:00)."
-}
-```
-```json
-{
-  "detail": "R3 violation: Start 2025-08-20T08:59:00+00:00 is before now 2025-08-21T12:34:56+00:00."
-}
-```
-
-## Frontend UX
-- Lanes are derived from unique `machineId`s.
-- Bars show **`WO-ID · operation name`**.
-- A vertical **now** line is visible.
-- Click any operation → all operations with the same `workOrderId` highlight.  
-- Click blank space or **Clear highlight** to remove highlight.
-- Buttons on each card let you nudge an operation by ±10 minutes to test validations.
-
-## Local Dev (optional)
-
-### Backend
+## Geliştirme ve test
 ```bash
+# Arka uç (SQLite ile çalışan testler, PostgreSQL gerekmez)
 cd backend
-export DATABASE_URL=postgresql+psycopg2://app:app@localhost:5432/factory
-uvicorn app.main:app --reload
-```
-Seed/reset:
-```bash
-python -m app.seed  # reads ../seed.json
-```
+pip install -r requirements-dev.txt
+python -m pytest            # 22 test
 
-### Frontend
-```bash
+# Ön yüz
 cd frontend
-npm install
+npm ci
 VITE_API_BASE=http://localhost:8000 npm run dev
+npm run build               # tip denetimi + üretim derlemesi
+```
+GitHub Actions her push ve pull request'te arka uç testlerini ve ön yüz derlemesini çalıştırır.
+
+## Yapı
+```
+backend/app   main.py (API), rules.py (iş kuralları), crud.py, models.py, schemas.py, seed.py
+backend/tests rules ve API testleri
+frontend/src  App.tsx (zaman çizelgesi), api.ts (istemci)
 ```
 
-## Notes
-- Times are stored as timezone-aware UTC in Postgres and returned as ISO-8601.
-- Only same-lane drag/drop would be needed for the bonus; here we offer ±10 min buttons to exercise the update API.
+## Bilinen sınırlar
+Operasyonlar yalnızca ±10 dk düğmeleriyle kaydırılır (sürükle-bırak yok); kimlik doğrulama yoktur; tarih görüntüsü tarayıcının yerel saat dilimini kullanır, API UTC çalışır.

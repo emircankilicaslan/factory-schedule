@@ -1,4 +1,3 @@
-
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -6,9 +5,9 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app /app/app
-COPY ../seed.json /app/seed.json
 
 ENV PYTHONUNBUFFERED=1
+RUN useradd --system --uid 10001 appuser
+USER appuser
 
-# Run the app via uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

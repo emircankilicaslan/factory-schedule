@@ -41,8 +41,8 @@ export default function App() {
   // Draw timeline
   useEffect(() => {
     if (!containerRef.current) return
-    const groupsDS = new DataSet(groups as any)
-    const itemsDS = new DataSet(items as any)
+    const groupsDS = new DataSet<any>(groups)
+    const itemsDS = new DataSet<any>(items)
 
     const timeline = new Timeline(containerRef.current, itemsDS, groupsDS, {
       stack: false,

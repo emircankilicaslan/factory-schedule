@@ -1,26 +1,51 @@
 [
   {
-    "id": 1,
-    "product": "Product A",
+    "id": "WO-1001",
+    "product": "Widget A",
     "qty": 100,
     "operations": [
       {
-        "id": 1,
-        "workOrderId": 1,
+        "id": "OP-1",
+        "workOrderId": "WO-1001",
         "index": 1,
         "machineId": "M1",
-        "name": "Cutting",
-        "start": "2025-08-22T09:00:00",
-        "end": "2025-08-22T10:00:00"
+        "name": "Cut",
+        "start": "2025-08-20T09:00:00Z",
+        "end": "2025-08-20T10:00:00Z"
       },
       {
-        "id": 2,
-        "workOrderId": 1,
+        "id": "OP-2",
+        "workOrderId": "WO-1001",
         "index": 2,
         "machineId": "M2",
-        "name": "Assembling",
-        "start": "2025-08-22T10:30:00",
-        "end": "2025-08-22T11:30:00"
+        "name": "Assemble",
+        "start": "2025-08-20T10:10:00Z",
+        "end": "2025-08-20T12:00:00Z"
+      }
+    ]
+  },
+  {
+    "id": "WO-1002",
+    "product": "Widget B",
+    "qty": 50,
+    "operations": [
+      {
+        "id": "OP-3",
+        "workOrderId": "WO-1002",
+        "index": 1,
+        "machineId": "M1",
+        "name": "Cut",
+        "start": "2025-08-20T09:30:00Z",
+        "end": "2025-08-20T10:30:00Z"
+      },
+      {
+        "id": "OP-4",
+        "workOrderId": "WO-1002",
+        "index": 2,
+        "machineId": "M2",
+        "name": "Assemble",
+        "start": "2025-08-20T10:40:00Z",
+        "end": "2025-08-20T12:15:00Z"
       }
     ]
   }
