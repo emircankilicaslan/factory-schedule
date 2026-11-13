@@ -1,6 +1,6 @@
 # Factory Scheduler – Fabrika Üretim Çizelgesi
 
-![CI](https://github.com/emircankilicaslan/factory-schedule/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/emircankilicaslan/factory-schedule/actions/workflows/ci.yml/badge.svg) ![Lisans: MIT](https://img.shields.io/badge/Lisans-MIT-green.svg)
 
 > **English summary:** A small full-stack app (FastAPI + SQLAlchemy + PostgreSQL, React + vis-timeline) that shows factory work orders on a Gantt-style timeline and validates schedule changes with three business rules: operation precedence, machine-lane exclusivity and no scheduling in the past.
 
@@ -70,3 +70,7 @@ frontend/src  App.tsx (zaman çizelgesi), api.ts (istemci)
 
 ## Bilinen sınırlar
 Operasyonlar yalnızca ±10 dk düğmeleriyle kaydırılır (sürükle-bırak yok); kimlik doğrulama yoktur; tarih görüntüsü tarayıcının yerel saat dilimini kullanır, API UTC çalışır.
+
+## Lisans
+
+Bu proje [MIT Lisansı](LICENSE) ile paylaşılmaktadır.
